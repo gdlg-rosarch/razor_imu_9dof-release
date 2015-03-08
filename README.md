@@ -18,10 +18,6 @@ Install and Configure ROS Package
 	$ cd ..
 	$ catkin_make
 
-3) Edit ``launch/razor*.launch`` to use correct USB port:
-
-	<param name="device" type="string" value="/dev/ttyUSB0" />
-
 
 Install Arduino firmware
 -------------------------
@@ -45,18 +41,36 @@ Use this version - it emits linear acceleration and angular velocity data requir
 3) Upload Arduino sketch to the Sparkfun 9DOF Razor IMU board
 
 
+Configure
+---------
+In its default configuration, ``razor_imu_9dof`` expects a yaml config file ``my_razor.yaml`` with:
+* USB port to use
+* Calibration parameters
+
+An example``razor.yaml`` file is provided.
+Copy that file to ``my_razor.yaml`` as follows:
+
+    $ roscd razor_imu_9dof/config
+    $ cp razor.yaml my_razor.yaml
+
+Then, edit ``my_razor.yaml`` as needed
+
 Launch
 ------
 Publisher and 3D visualization:
-	
+
 	$ roslaunch razor_imu_9dof razor-pub-and-display.launch
 
 Publisher only:
-	
+
 	$ roslaunch razor_imu_9dof razor-pub.launch
 
+Publisher only with diagnostics:
+
+	$ roslaunch razor_imu_9dof razor-pub-diags.launch
+
 3D visualization only:
-	
+
 	$ roslaunch razor_imu_9dof razor-display.launch
 
 
@@ -67,3 +81,21 @@ For best accuracy, follow the tutorial to calibrate the sensors:
 http://wiki.ros.org/razor_imu_9dof
 
 A copy of Peter Bartz's magnetometer calibration scripts from https://github.com/ptrbrtz/razor-9dof-ahrs is provided in the ``magnetometer_calibration`` directory.
+
+Update ``my_razor.yaml`` with the new calibration parameters.
+
+Dynamic Reconfigure
+-------------------
+After having launched the publisher with one of the launch commands listed above, 
+it is possible to dynamically reconfigure the yaw calibration.
+
+1) Run:
+
+    $ rosrun rqt_reconfigure rqt_reconfigure 
+    
+2) Select ``imu_node``. 
+
+3) Change the slider to move the calibration +/- 10 degrees. 
+If you are running the 3D visualization you'll see the display jump when the new calibration takes effect.
+
+The intent of this feature is to let you tune the alignment of the AHRS to the direction of the robot driving direction, so that if you can determine that, for example, the AHRS reads 30 degrees when the robot is actually going at 35 degrees as shown by e.g. GPS, you can tune the calibration to make it read 35. It's the compass-equivalent of bore-sighting a camera.
